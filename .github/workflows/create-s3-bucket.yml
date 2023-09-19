@@ -1,0 +1,39 @@
+name: Create an AWS S3 bucket for sharing terraform state
+
+run-name: Create an AWS S3 bucket "${{ inputs.bucket }}" on ${{ inputs.env }} environment at ${{ inputs.region }} region
+
+on:
+  workflow_dispatch:
+    inputs:
+      env:
+        description: 'Running environment'
+        required: true
+        type: choice
+        options:
+          - dev
+          - prd
+      bucket:
+        description: 'AWS S3 bucket name'
+        required: true
+      region:
+        description: 'AWS region'
+        required: true
+        default: 'ap-northeast-2'
+
+jobs:
+  crate_s3_bucket:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.env }}
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ inputs.region }}
+      - name: Create an AWS S3 bucket
+        run: |
+          aws s3api create-bucket --bucket ${{ inputs.bucket }} --region ${{ inputs.region }} --create-bucket-configuration LocationConstraint=${{ inputs.region }}
+          aws s3api put-public-access-block --bucket ${{ inputs.bucket }} --region ${{ inputs.region }} --public-access-block-configuration "BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true"
+          aws s3api put-bucket-versioning --bucket ${{ inputs.bucket }} --versioning-configuration Status=Enabled
+
