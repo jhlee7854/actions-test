@@ -12,13 +12,13 @@ on:
         options:
           - dev
           - prd
-      bucket:
-        description: 'AWS S3 bucket name'
-        required: true
       region:
         description: 'AWS region'
         required: true
         default: 'ap-northeast-2'
+      bucket:
+        description: 'AWS S3 bucket name'
+        required: true
 
 jobs:
   crate_s3_bucket:
@@ -31,9 +31,29 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ inputs.region }}
-      - name: Create an AWS S3 bucket
+      - name: Create an AWS DynamoDB table
+        run: |
+          aws dynamodb create-table \
+          --table-name ${{ inputs.bucket }}-lock-db \
+          --attribute-definitions AttributeName=LockID,AttributeType=S \
+          --key-schema AttributeName=LockID,KeyType=HASH \
+          --provisioned-throughput ReadCapacityUnits=5,WriteCapacityUnits=5
+      - name: Create an AWS S3 bucket for terraform state
         run: |
           aws s3api create-bucket --bucket ${{ inputs.bucket }} --region ${{ inputs.region }} --create-bucket-configuration LocationConstraint=${{ inputs.region }}
           aws s3api put-public-access-block --bucket ${{ inputs.bucket }} --region ${{ inputs.region }} --public-access-block-configuration "BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true"
           aws s3api put-bucket-versioning --bucket ${{ inputs.bucket }} --versioning-configuration Status=Enabled
+      - name: Create an AWS S3 bucket for log
+        env:
+          BUCKET_NAME_FOR_LOG: ${{ inputs.bucket }}-log
+        run: |
+          aws s3api create-bucket --bucket $BUCKET_NAME_FOR_LOG --region ${{ inputs.region }} --create-bucket-configuration LocationConstraint=${{ inputs.region }}
+          aws s3api put-bucket-acl --bucket $BUCKET_NAME_FOR_LOG --grant-write URI=http://acs.amazonaws.com/groups/s3/LogDelivery --grant-read-acp URI=http://acs.amazonaws.com/groups/s3/LogDelivery
+          printf '{\
+          "LoggingEnabled": {\
+            "TargetBucket": "%s",\
+            "TargetPrefix": "%s/"\
+            }\
+          }' "$BUCKET_NAME_FOR_LOG" "${{ inputs.bucket }}" > logging.json
+          aws s3api put-bucket-logging --bucket ${{ inputs.bucket }} --bucket-logging-status file://logging.json
 
