@@ -49,11 +49,11 @@ jobs:
         run: |
           aws s3api create-bucket --bucket $BUCKET_NAME_FOR_LOG --region ${{ inputs.region }} --create-bucket-configuration LocationConstraint=${{ inputs.region }} --object-ownership BucketOwnerPreferred
           aws s3api put-bucket-acl --bucket $BUCKET_NAME_FOR_LOG --grant-write URI=http://acs.amazonaws.com/groups/s3/LogDelivery --grant-read-acp URI=http://acs.amazonaws.com/groups/s3/LogDelivery
-          printf '{\
-          "LoggingEnabled": {\
-            "TargetBucket": "%s",\
-            "TargetPrefix": "%s/"\
-            }\
+          printf '{
+          "LoggingEnabled": {
+            "TargetBucket": "%s",
+            "TargetPrefix": "%s/"
+            }
           }' "$BUCKET_NAME_FOR_LOG" "${{ inputs.bucket }}" > logging.json
           aws s3api put-bucket-logging --bucket ${{ inputs.bucket }} --bucket-logging-status file://logging.json
 
