@@ -1,6 +1,6 @@
 name: Create an AWS S3 bucket for sharing terraform state
 
-run-name: Create an AWS S3 bucket "${{ inputs.bucket }}" on ${{ inputs.env }} environment at ${{ inputs.region }} region
+run-name: Create an AWS S3 bucket "${{ vars.STATE_BUCKET_NAME }}" on ${{ inputs.env }} environment at ${{ inputs.region }} region
 
 on:
   workflow_dispatch:
@@ -16,9 +16,6 @@ on:
         description: 'AWS region'
         required: true
         default: 'ap-northeast-2'
-      bucket:
-        description: 'AWS S3 bucket name'
-        required: true
 
 jobs:
   crate_s3_bucket:
@@ -34,13 +31,13 @@ jobs:
       - name: Create an AWS DynamoDB table
         run: |
           aws dynamodb create-table \
-          --table-name ${{ inputs.bucket }}-lock-table \
+          --table-name ${{ vars.STATE_BUCKET_NAME }}-lock-table \
           --attribute-definitions AttributeName=LockID,AttributeType=S \
           --key-schema AttributeName=LockID,KeyType=HASH \
           --provisioned-throughput ReadCapacityUnits=5,WriteCapacityUnits=5
       - name: Create an AWS S3 bucket for log
         run: |
-          aws s3api create-bucket --bucket ${{ inputs.bucket }}-logs --region ${{ inputs.region }} --create-bucket-configuration LocationConstraint=${{ inputs.region }}
+          aws s3api create-bucket --bucket ${{ vars.STATE_BUCKET_NAME }}-logs --region ${{ inputs.region }} --create-bucket-configuration LocationConstraint=${{ inputs.region }}
           printf '{
               "Version": "2012-10-17",
               "Statement": [
@@ -57,25 +54,22 @@ jobs:
                       "Condition": {
                           "ArnLike": {
                               "aws:SourceArn": "arn:aws:s3:::%s"
-                          },
-                          "StringEquals": {
-                              "aws:SourceAccount": "%s"
                           }
                       }
                   }
               ]
-          }' "${{ inputs.bucket }}-logs" "${{ inputs.bucket }}" "$(aws sts get-caller-identity --query Account --output text)" > policy.json
-          aws s3api put-bucket-policy --bucket ${{ inputs.bucket }}-logs --policy file://policy.json
+          }' "${{ vars.STATE_BUCKET_NAME }}-logs" "${{ vars.STATE_BUCKET_NAME }}" > policy.json
+          aws s3api put-bucket-policy --bucket ${{ vars.STATE_BUCKET_NAME }}-logs --policy file://policy.json
       - name: Create an AWS S3 bucket for terraform state
         run: |
-          aws s3api create-bucket --bucket ${{ inputs.bucket }} --region ${{ inputs.region }} --create-bucket-configuration LocationConstraint=${{ inputs.region }}
-          aws s3api put-bucket-versioning --bucket ${{ inputs.bucket }} --versioning-configuration Status=Enabled
+          aws s3api create-bucket --bucket ${{ vars.STATE_BUCKET_NAME }} --region ${{ inputs.region }} --create-bucket-configuration LocationConstraint=${{ inputs.region }}
+          aws s3api put-bucket-versioning --bucket ${{ vars.STATE_BUCKET_NAME }} --versioning-configuration Status=Enabled
           printf '{
           "LoggingEnabled": {
             "TargetBucket": "%s",
             "TargetPrefix": "%s/"
             }
-          }' "${{ inputs.bucket }}-logs" "${{ inputs.bucket }}" > logging.json
-          aws s3api put-bucket-logging --bucket ${{ inputs.bucket }} --bucket-logging-status file://logging.json
+          }' "${{ vars.STATE_BUCKET_NAME }}-logs" "${{ vars.STATE_BUCKET_NAME }}" > logging.json
+          aws s3api put-bucket-logging --bucket ${{ vars.STATE_BUCKET_NAME }} --bucket-logging-status file://logging.json
           
 
