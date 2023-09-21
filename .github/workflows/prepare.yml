@@ -1,6 +1,6 @@
 name: Prepare for sharing terraform state
 
-run-name: Create an AWS S3 bucket and DynamoDB table on ${{ inputs.env }} environment
+run-name: Create AWS S3 buckets and DynamoDB table on ${{ inputs.env }} environment
 
 on:
   workflow_dispatch:

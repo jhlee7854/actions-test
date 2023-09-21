@@ -1,4 +1,6 @@
-name: Terraform plan
+name: Terraform plan and apply
+
+run-name: Create AWS infrastructures on dev environment
 
 on:
   pull_request:
@@ -9,7 +11,7 @@ on:
       - develop
 
 jobs:
-  plan:
+  plan-and-apply:
     runs-on: ubuntu-latest
     environment: dev
     permissions:
@@ -41,7 +43,7 @@ jobs:
           echo "region = \"${{ env.AWS_REGION }}\"" >> config.s3.tfbackend
           echo "encrypt = true" >> config.s3.tfbackend
           echo "dynamodb_table = \"${{ env.DYNAMODB_LOCK_TABLE_NAME }}\"" >> config.s3.tfbackend
-          terraform init -backend-config=config.s3.tfbackend
+          terraform init -input=false -backend-config=config.s3.tfbackend
 
       - name: Terraform validate
         id: validate
@@ -50,7 +52,7 @@ jobs:
       - name: Terraform plan
         id: plan
         if: github.event_name == 'pull_request'
-        run: terraform plan -no-color
+        run: terraform plan -input=false -no-color
         continue-on-error: true
 
       - name: Update pull request
@@ -116,6 +118,6 @@ jobs:
         if: steps.plan.outcome == 'failure'
         run: exit 1
 
-      - name: Terraform Apply
+      - name: Terraform apply
         if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
-        run: terraform apply -auto-approve -input=false
+        run: terraform apply -input=false -auto-approve
