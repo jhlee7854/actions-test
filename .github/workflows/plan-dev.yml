@@ -28,14 +28,6 @@ jobs:
       - name: Setup terraform
         uses: hashicorp/setup-terraform@v2
 
-      - name: Create terraform backend config file
-        run: |
-          echo "bucket = \"${{ env.S3_BUCKET_NAME }}\"" > config.s3.tfbackend
-          echo "key = \"tstate/terraform.tfstate\"" >> config.s3.tfbackend
-          echo "region = \"${{ env.AWS_REGION }}\"" >> config.s3.tfbackend
-          echo "encript = true" >> config.s3.tfbackend
-          echo "lock_table = \"${{ env.DYNAMODB_LOCK_TABLE_NAME }}\"" >> config.s3.tfbackend
-
       - name: Terraform fmt
         id: fmt
         run: terraform fmt -check
@@ -43,7 +35,13 @@ jobs:
 
       - name: Terraform initialize
         id: init
-        run: terraform init -backend-config=config.s3.tfbackend
+        run: |
+          echo "bucket = \"${{ env.S3_BUCKET_NAME }}\"" > config.s3.tfbackend
+          echo "key = \"tstate/terraform.tfstate\"" >> config.s3.tfbackend
+          echo "region = \"${{ env.AWS_REGION }}\"" >> config.s3.tfbackend
+          echo "encrypt = true" >> config.s3.tfbackend
+          echo "dynamodb_table = \"${{ env.DYNAMODB_LOCK_TABLE_NAME }}\"" >> config.s3.tfbackend
+          terraform init -backend-config=config.s3.tfbackend
 
       - name: Terraform validate
         id: validate
