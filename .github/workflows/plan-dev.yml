@@ -19,9 +19,6 @@ jobs:
       DYNAMODB_LOCK_TABLE_NAME: ${{ vars.CLUSTER_NAME }}-state-lock-table
       S3_BUCKET_NAME: ${{ vars.CLUSTER_NAME }}-state
       TF_VAR_region: ${{ vars.AWS_REGION }}
-    defaults:
-      run:
-        working-directory: ./terraform/aws/eks/dev
     steps:
       - name: Source checkout
         uses: actions/checkout@v4
