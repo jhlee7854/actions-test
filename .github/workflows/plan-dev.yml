@@ -40,7 +40,7 @@ jobs:
           echo "key = \"tstate/terraform.tfstate\"" >> config.s3.tfbackend
           echo "region = \"${{ env.AWS_REGION }}\"" >> config.s3.tfbackend
           echo "encrypt = true" >> config.s3.tfbackend
-          echo "lock_table = \"${{ env.DYNAMODB_LOCK_TABLE_NAME }}\"" >> config.s3.tfbackend
+          echo "dynamodb_table = \"${{ env.DYNAMODB_LOCK_TABLE_NAME }}\"" >> config.s3.tfbackend
           terraform init -backend-config=config.s3.tfbackend
 
       - name: Terraform validate
