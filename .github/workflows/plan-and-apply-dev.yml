@@ -1,6 +1,6 @@
 name: Terraform plan and apply
 
-run-name: Manage AWS infrastructures on ${{ github.env.environment }} environment
+run-name: Manage AWS infrastructures on ${{ (github.base_ref == 'develop' && 'dev') || (github.base_ref == 'main' && 'prd') }} environment
 
 on:
   pull_request:
@@ -15,7 +15,7 @@ on:
 jobs:
   plan-and-apply:
     runs-on: ubuntu-latest
-    environment: dev
+    environment: ${{ (github.base_ref == 'develop' && 'dev') || (github.base_ref == 'main' && 'prd') }}
     permissions:
       pull-requests: write
     env:
