@@ -1,26 +1,32 @@
 name: Terraform plan and apply
 
-run-name: Manage AWS infrastructures on dev environment
+run-name: Manage AWS infrastructures on ${{ (github.base_ref == 'develop' && 'dev') || (github.base_ref == 'main' && 'prd') }} environment
 
 on:
   pull_request:
     branches:
       - develop
+      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - closed
 
 jobs:
   plan-and-apply:
     runs-on: ubuntu-latest
-    environment: dev
+    environment: ${{ (github.base_ref == 'develop' && 'dev') || (github.base_ref == 'main' && 'prd') }}
     permissions:
       pull-requests: write
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_REGION: ${{ vars.AWS_REGION }}
-      DYNAMODB_LOCK_TABLE_NAME: ${{ vars.PROJECT_NAME }}-state-lock-table
-      S3_BUCKET_NAME: ${{ vars.PROJECT_NAME }}-state
+      DYNAMODB_LOCK_TABLE_NAME: ${{ vars.PROJECT_NAME }}-state-lock-table-${{ (github.base_ref == 'develop' && 'dev') || (github.base_ref == 'main' && 'prd') }}
+      S3_BUCKET_NAME: ${{ vars.PROJECT_NAME }}-state-${{ (github.base_ref == 'develop' && 'dev') || (github.base_ref == 'main' && 'prd') }}
       TF_VAR_region: ${{ vars.AWS_REGION }}
-      TF_VAR_project_name: ${{ vars.PROJECT_NAME }}
+      TF_VAR_project_name: ${{ vars.PROJECT_NAME }}-${{ (github.base_ref == 'develop' && 'dev') || (github.base_ref == 'main' && 'prd') }}
     steps:
       - name: Source checkout
         uses: actions/checkout@v4
