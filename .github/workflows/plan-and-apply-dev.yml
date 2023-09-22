@@ -6,9 +6,6 @@ on:
   pull_request:
     branches:
       - develop
-  push:
-    branches:
-      - develop
 
 jobs:
   plan-and-apply:
@@ -20,7 +17,7 @@ jobs:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_REGION: ${{ vars.AWS_REGION }}
-      DYNAMODB_LOCK_TABLE_NAME: ${{ vars.CLUSTER_NAME }}-state-lock-table
+      DYNAMODB_LOCK_TABLE_NAME: ${{ vars.PROJECT_NAME }}-state-lock-table
       S3_BUCKET_NAME: ${{ vars.CLUSTER_NAME }}-state
       TF_VAR_region: ${{ vars.AWS_REGION }}
     steps:
@@ -119,5 +116,5 @@ jobs:
         run: exit 1
 
       - name: Terraform apply
-        if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+        if: github.event.pull_request.merged == true
         run: terraform apply -input=false -auto-approve
