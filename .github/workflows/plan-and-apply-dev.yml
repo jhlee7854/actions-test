@@ -1,6 +1,6 @@
 name: Terraform plan and apply
 
-run-name: Manage AWS infrastructures on dev environment
+run-name: Manage AWS infrastructures on ${{ github.env.environment }} environment
 
 on:
   pull_request:
