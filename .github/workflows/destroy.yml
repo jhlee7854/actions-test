@@ -21,9 +21,10 @@ jobs:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_REGION: ${{ vars.AWS_REGION }}
-      DYNAMODB_LOCK_TABLE_NAME: ${{ vars.CLUSTER_NAME }}-state-lock-table
-      S3_BUCKET_NAME: ${{ vars.CLUSTER_NAME }}-state
+      DYNAMODB_LOCK_TABLE_NAME: ${{ vars.PROJECT_NAME }}-state-lock-table-${{ inputs.env }}
+      S3_BUCKET_NAME: ${{ vars.PROJECT_NAME }}-state-${{ inputs.env }}
       TF_VAR_region: ${{ vars.AWS_REGION }}
+      TF_VAR_project_name: ${{ vars.PROJECT_NAME }}-${{ inputs.env }}
     steps:
       - name: Source checkout
         uses: actions/checkout@v4
