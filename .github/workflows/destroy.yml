@@ -24,6 +24,7 @@ jobs:
       DYNAMODB_LOCK_TABLE_NAME: ${{ vars.PROJECT_NAME }}-state-lock-table
       S3_BUCKET_NAME: ${{ vars.PROJECT_NAME }}-state
       TF_VAR_region: ${{ vars.AWS_REGION }}
+      TF_VAR_project_name: ${{ vars.PROJECT_NAME }}
     steps:
       - name: Source checkout
         uses: actions/checkout@v4
