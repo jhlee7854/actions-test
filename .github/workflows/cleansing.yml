@@ -1,4 +1,4 @@
-name: Shared terraform state cleansing
+name: Cleansing shared terraform state
 
 run-name: Delete AWS S3 buckets and DynamoDB table on ${{ inputs.env }} environment
 
