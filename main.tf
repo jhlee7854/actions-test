@@ -16,7 +16,7 @@ provider "aws" {
 
 # Create a VPC
 resource "aws_vpc" "example" {
-  cidr_block = "10.2.0.0/16"
+  cidr_block = "10.4.0.0/16"
   tags = {
     Name = var.project_name
   }
