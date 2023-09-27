@@ -12,6 +12,7 @@ on:
 
 jobs:
   apply:
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     environment: ${{ (github.base_ref == 'develop' && 'dev') || (github.base_ref == 'main' && 'prd') }}
     permissions:
@@ -118,5 +119,4 @@ jobs:
         run: exit 1
 
       - name: Terraform apply
-        if: github.event.pull_request.merged == true
         run: terraform apply -input=false -auto-approve
