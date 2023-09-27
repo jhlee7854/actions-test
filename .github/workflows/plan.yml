@@ -1,6 +1,6 @@
-name: Terraform plan and apply
+name: Terraform plan
 
-run-name: Manage AWS infrastructures on ${{ (github.base_ref == 'develop' && 'dev') || (github.base_ref == 'main' && 'prd') }} environment
+run-name: Create terraform plan to AWS infrastructures on ${{ (github.base_ref == 'develop' && 'dev') || (github.base_ref == 'main' && 'prd') }} environment
 
 on:
   pull_request:
@@ -10,10 +10,9 @@ on:
     types:
       - opened
       - synchronize
-      - reopened
 
 jobs:
-  plan-and-apply:
+  plan:
     runs-on: ubuntu-latest
     environment: ${{ (github.base_ref == 'develop' && 'dev') || (github.base_ref == 'main' && 'prd') }}
     permissions:
@@ -54,12 +53,10 @@ jobs:
 
       - name: Terraform plan
         id: plan
-        if: github.event_name == 'pull_request'
         run: terraform plan -input=false -no-color
         continue-on-error: true
 
       - name: Update pull request
-        if: github.event_name == 'pull_request'
         uses: actions/github-script@v6
         env:
           PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
@@ -116,11 +113,3 @@ jobs:
                 body: output
               })
             }
-
-      - name: Terraform plan status
-        if: steps.plan.outcome == 'failure'
-        run: exit 1
-
-      - name: Terraform apply
-        if: github.event.pull_request.merged == true
-        run: terraform apply -input=false -auto-approve
